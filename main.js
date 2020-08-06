@@ -6,7 +6,38 @@ var http = require('http');
 var fs = require('fs');
 var url = require('url');
 
-// app이라는 인스턴스 생성 (객체는 정의만 된 것, 인스턴스는 실체화 된것(메모리 차지))
+function getTemplateHTML(title, list, description) {
+  return `
+  <!doctype html>
+  <html>
+  <head>
+    <title>WEB1 - ${title}</title>
+    <meta charset="utf-8">
+  </head>
+  <body>
+    <h1><a href="/">WEB</a></h1>
+    ${list}
+    <h2>${title}</h2>
+    <p>${description}</p>
+  </body>
+  </html>
+  `;
+}
+
+function getTemplateList(filelist) {
+  var list = `<ul>
+  `;
+  var i = 0;
+  while (i < filelist.length) {
+    list += `<li><a href="/?id=${filelist[i]}">${filelist[i]}</a></li>
+    `;
+    i++;
+  }
+  list += `</ul>`;
+  return list;
+}
+
+// "app" 인스턴스 생성 (객체는 정의만 된 것, 인스턴스는 실체화 된것(메모리 차지))
 // 리스너 형태로 작동
 var app = http.createServer(function(request, response) {
   // console.log(request.url);
@@ -27,31 +58,8 @@ var app = http.createServer(function(request, response) {
       // filesystem
       // ./data 파일 목록을 filelist에 배열로 저장
       fs.readdir('./data', function(error, filelist) {
-        var list = `<ul>
-        `;
-        var i = 0;
-        while (i < filelist.length) {
-          list += `<li><a href="/?id=${filelist[i]}">${filelist[i]}</a></li>
-          `;
-          i++;
-        }
-        list += `</ul>`;
-
-        var template = `
-        <!doctype html>
-        <html>
-        <head>
-          <title>WEB1 - ${title}</title>
-          <meta charset="utf-8">
-        </head>
-        <body>
-          <h1><a href="/">WEB</a></h1>
-          ${list}
-          <h2>${title}</h2>
-          <p>${description}</p>
-        </body>
-        </html>
-        `;
+        var list = getTemplateList(filelist);
+        var template = getTemplateHTML(title, list, description);
         response.writeHead(200);
         response.end(template);
       });

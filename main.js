@@ -50,7 +50,12 @@ var app = http.createServer(function(request, response) {
     // file system
     // `data/${queryData.id}`의 텍스트를 description에 담음.
     fs.readFile(`data/${queryData.id}`, 'UTF8', function(err, description) {
-      var control = `<a href="/create">create</a> <a href="/update?id=${title}">update</a>`;
+      var control = `<a href="/create">create</a>
+      <a href="/update?id=${title}">update</a>
+      <form action="delete_process" method="post">
+        <input type="hidden" name="id" value="${title}">
+        <input type="submit" value="delete">
+      </form>`;
       if (queryData.id === undefined) {
         title = 'Welcome';
         description = 'Hello, Node.js';
@@ -135,7 +140,7 @@ var app = http.createServer(function(request, response) {
     });
     request.on('end', function() {
       var post = qs.parse(body);
-      var id = post.id
+      var id = post.id;
       var title = post.title;
       var description = post.description;
       // 파일 생성
@@ -145,6 +150,23 @@ var app = http.createServer(function(request, response) {
           response.end();
         });
       });
+    });
+  } else if (pathname === '/delete_process') { // get POST delete
+    var body = '';
+    request.on('data', function(data) {
+      body += data;
+      // over 1mb
+      if (body.length > 1e6)
+        request.connection.destroy();
+    });
+    request.on('end', function() {
+      var post = qs.parse(body);
+      var id = post.id;
+      // 파일 삭제
+      fs.unlink(`data/${id}`, function(error) {
+        response.writeHead(302, {Location: `/`});
+        response.end();
+      })
     });
   } else { // 404
     response.writeHead(404);
